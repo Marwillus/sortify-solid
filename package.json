@@ -9,9 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@solidjs/router": "^0.10.8",
     "@suid/icons-material": "^0.6.11",
     "@suid/material": "^0.15.1",
     "@thisbeyond/solid-dnd": "^0.7.5",
+    "axios": "^1.6.5",
     "solid-js": "^1.8.7"
   },
   "devDependencies": {

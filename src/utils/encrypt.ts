@@ -20,7 +20,7 @@ const base64encode = (input: ArrayBufferLike) => {
 
 export const codeVerifier = generateRandomString(64);
 
-export const codeChallenge = async (): Promise<string> => {
+export const generateCodeChallenge = async (): Promise<string> => {
     const hashed = await sha256(codeVerifier)
     return base64encode(hashed);
 }
