@@ -1,13 +1,15 @@
-import { onMount } from "solid-js";
-import { getToken } from "../utils/authorization";
+import { onMount } from 'solid-js';
+
+import { getToken } from '../utils/authorization';
 
 function Callback() {
     onMount(()=>{
-        const code = new URLSearchParams(window.location.search).get('code')
+        const code = new URLSearchParams(window.location.search).get('code')        
         if (code) getToken(code)
+        // window.location.pathname = '/'
     })
 
-    return  null
+    return <>redirecting...</>
 }
 
 export default Callback
