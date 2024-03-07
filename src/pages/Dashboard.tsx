@@ -1,7 +1,8 @@
-import { createSignal, Show } from 'solid-js';
+import { createSignal, onMount, Show } from 'solid-js';
 
 import { Button, Card } from '@suid/material';
 
+import { isTokenExpired } from '../utils/authorization';
 import Login from './Login';
 
 function Dashboard() {
@@ -10,10 +11,21 @@ function Dashboard() {
   >();
   const [topTracks, setTopTracks] = createSignal<string | undefined | null>();
   const [playlists, setPlaylists] = createSignal<string | undefined | null>();
+  const [errorMessage, setErrorMessage] = createSignal("");
+  console.log("render Dashboard");
 
   if (!accessToken()) {
     setAccessToken(window.localStorage.getItem("access_token"));
   }
+
+  onMount(() => {
+    // reset localStorage
+    if (isTokenExpired()) {
+      // @TODO refresh token
+      setErrorMessage("Token Expired");
+      localStorage.clear();
+    }
+  });
 
   async function fetchWebApi(endpoint: string, method: string, body?: any) {
     const res = await fetch(`https://api.spotify.com/${endpoint}`, {
@@ -35,33 +47,27 @@ function Dashboard() {
   }
 
   async function getMyPlaylists() {
-    const topTracks = await fetchWebApi(
-      "v1/me/playlists",
-      "GET"
-    );
+    const topTracks = await fetchWebApi("v1/me/playlists", "GET");
     setPlaylists(topTracks.items);
   }
-
-  console.log("render Dashboard");
-  console.log(accessToken());
 
   return (
     <>
       <h1>Dashboard</h1>
       <p>{accessToken()}</p>
+      <p>Copy Playlists from Spotify to Your Account</p>
       <Show when={accessToken()} fallback={<Login />}>
         <Card>
           <Button onClick={() => getTopTracks()}>get Top Tracks</Button>
-          <Button onClick={() => getMyPlaylists()}>get Top Tracks</Button>
+          <Button onClick={() => getMyPlaylists()}>get Playlists</Button>
           {topTracks() &&
             topTracks()?.map(
               ({ name, artists }) =>
                 ` ${name} by ${artists.map((artist) => artist.name).join(", ")}`
             )}
         </Card>
-
       </Show>
-      {/* <Login></Login> */}
+      {errorMessage() && <h3>{errorMessage()}</h3>}
     </>
   );
 }

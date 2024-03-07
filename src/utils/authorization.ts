@@ -31,7 +31,7 @@ export const getToken = async (code: string) => {
   localStorage.setItem('time_stamp', new Date().toISOString())
 }
 
-export function checkIfTokenExpired() {
+export function isTokenExpired() {
   const localExpiresIn = localStorage.getItem("expires_in");
   const localStoredTimestamp = localStorage.getItem("time_stamp");
 
@@ -41,7 +41,7 @@ export function checkIfTokenExpired() {
     const expirationTime = new Date(
       storedTimestamp.getTime() + expiresIn * 1000
     );
-    const currentTime = new Date();
+    const currentTime = new Date(); 
     
     return currentTime > expirationTime;
   }
