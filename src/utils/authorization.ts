@@ -23,18 +23,33 @@ export const getToken = async (code: string) => {
 
   const body = await fetch(tokenUrl, payload);
   const response = await body.json();  
-  console.log(response);
-  console.log(response);
   
 
   localStorage.setItem('access_token', response.access_token);
   localStorage.setItem('refresh_token', response.refresh_token);
   localStorage.setItem('expires_in', response.expires_in);
-
-
+  localStorage.setItem('time_stamp', new Date().toISOString())
 }
 
-function refreshToken() {
+export function checkIfTokenExpired() {
+  const localExpiresIn = localStorage.getItem("expires_in");
+  const localStoredTimestamp = localStorage.getItem("time_stamp");
+
+  if (localExpiresIn && localStoredTimestamp) {
+    const expiresIn = parseInt(localExpiresIn);
+    const storedTimestamp = new Date(localStoredTimestamp);
+    const expirationTime = new Date(
+      storedTimestamp.getTime() + expiresIn * 1000
+    );
+    const currentTime = new Date();
+    
+    return currentTime > expirationTime;
+  }
+
+  return false;
+}
+
+export function refreshToken() {
   const refreshToken = window.localStorage.getItem('refresh_token')
   if (!refreshToken) return
 
@@ -53,7 +68,7 @@ function refreshToken() {
     );
 }
 
-function logout() {
+export function logout() {
   localStorage.clear();
   window.location.reload();
 }
