@@ -29,6 +29,9 @@ export const getToken = async (code: string) => {
   localStorage.setItem('refresh_token', response.refresh_token);
   localStorage.setItem('expires_in', response.expires_in);
   localStorage.setItem('time_stamp', new Date().toISOString())
+
+  // redirect to home
+  window.location.pathname = '/'
 }
 
 export function isTokenExpired() {
@@ -42,7 +45,7 @@ export function isTokenExpired() {
       storedTimestamp.getTime() + expiresIn * 1000
     );
     const currentTime = new Date(); 
-    
+
     return currentTime > expirationTime;
   }
 

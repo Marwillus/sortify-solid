@@ -1,7 +1,8 @@
-import { createSignal, onMount, Show } from 'solid-js';
+import { createEffect, createSignal, onMount, Show } from 'solid-js';
 
-import { Button, Card } from '@suid/material';
+import { Box, Button, Card, Container, Divider, Typography } from '@suid/material';
 
+import PlaylistCard from '../components/PlaylistCard';
 import { isTokenExpired } from '../utils/authorization';
 import Login from './Login';
 
@@ -51,24 +52,33 @@ function Dashboard() {
     setPlaylists(topTracks.items);
   }
 
+  createEffect(() => {
+    console.log({ pl: playlists(), tt: topTracks() });
+  });
+
   return (
-    <>
-      <h1>Dashboard</h1>
-      <p>{accessToken()}</p>
-      <p>Copy Playlists from Spotify to Your Account</p>
-      <Show when={accessToken()} fallback={<Login />}>
-        <Card>
-          <Button onClick={() => getTopTracks()}>get Top Tracks</Button>
-          <Button onClick={() => getMyPlaylists()}>get Playlists</Button>
-          {topTracks() &&
-            topTracks()?.map(
-              ({ name, artists }) =>
+    <Container>
+      <Typography variant='h1'>Dashboard</Typography>
+      <Typography>Copy Playlists from Spotify to Your Account</Typography>
+      <Divider></Divider>
+      <Box my={'2rem'}>
+        <Show when={accessToken()} fallback={<Login />}>
+          <Card>
+            <Button onClick={() => getTopTracks()}>get Top Tracks</Button>
+            <Button onClick={() => getMyPlaylists()}>get Playlists</Button>
+          </Card>
+          {/* {topTracks() &&
+            topTracks()?.map(({ name, artists }) => (
+              <Card>
                 ` ${name} by ${artists.map((artist) => artist.name).join(", ")}`
-            )}
-        </Card>
-      </Show>
+              </Card>
+            ))} */}
+          {playlists() && <Card>{playlists()?.toString()}</Card>}
+        </Show>
+      </Box>
+      <PlaylistCard></PlaylistCard>
       {errorMessage() && <h3>{errorMessage()}</h3>}
-    </>
+    </Container>
   );
 }
 
