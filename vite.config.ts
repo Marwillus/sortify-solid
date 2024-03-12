@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite'
-import solid from 'vite-plugin-solid'
+import { defineConfig } from 'vite';
+import macrosPlugin from 'vite-plugin-babel-macros';
+import solid from 'vite-plugin-solid';
 
 export default defineConfig({
-  plugins: [solid()],
+  plugins: [solid(), macrosPlugin()],
 })
