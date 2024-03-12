@@ -1,7 +1,8 @@
 import { createEffect, createSignal, onMount, Show } from 'solid-js';
 
-import { Box, Button, Card, Container, Divider, List, ListItem, Typography } from '@suid/material';
+import { Box, Button, Card, Container, Typography } from '@suid/material';
 
+import { fetchWebApi } from '../utils/api';
 import { isTokenExpired } from '../utils/authorization';
 import Login from './Login';
 
@@ -27,19 +28,11 @@ function Dashboard() {
     }
   });
 
-  async function fetchWebApi(endpoint: string, method: string, body?: any) {
-    const res = await fetch(`https://api.spotify.com/${endpoint}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken()}`,
-      },
-      method,
-      body: JSON.stringify(body),
-    });
-    return await res.json();
-  }
-
   async function getTopTracks() {
+    if (!accessToken()) return
+
     const topTracks = await fetchWebApi(
+      accessToken()!,
       "v1/me/top/tracks?time_range=long_term&limit=5",
       "GET"
     );
@@ -47,9 +40,16 @@ function Dashboard() {
   }
 
   async function getMyPlaylists() {
-    const topTracks = await fetchWebApi("v1/me/playlists", "GET");
-    setPlaylists(topTracks.items);
+    if (!accessToken()) return
+
+    const myPlaylists = await fetchWebApi(
+      accessToken()!,
+      "v1/me/playlists",
+      "GET"
+    );
+    setPlaylists(myPlaylists);
   }
+
 
   createEffect(() => {
     console.log({ pl: playlists(), tt: topTracks() });
@@ -59,7 +59,7 @@ function Dashboard() {
     <Container>
       <Typography variant="h1">Dashboard</Typography>
       <Typography>Copy Playlists from Spotify to Your Account</Typography>
-      <Divider></Divider>
+
       <Box my={"2rem"}>
         <Show when={accessToken()} fallback={<Login />}>
           <Card>
@@ -75,13 +75,13 @@ function Dashboard() {
         </Show>
       </Box>
       {/* <PlaylistCard></PlaylistCard> */}
-      {playlists() && (
+      {/* {playlists() && (
         <List>
           {playlists()?.map((item, index) => (
             <ListItem>{item.name}</ListItem>
           ))}
         </List>
-      )}
+      )} */}
       {errorMessage() && <h3>{errorMessage()}</h3>}
     </Container>
   );
