@@ -13,6 +13,7 @@ function Dashboard() {
   const [topTracks, setTopTracks] = createSignal<string | undefined | null>();
   const [playlists, setPlaylists] = createSignal<any>();
   const [errorMessage, setErrorMessage] = createSignal("");
+  const [dragOver, setDragover] = createSignal(false);
   console.log("render Dashboard");
 
   if (!accessToken()) {
@@ -29,7 +30,7 @@ function Dashboard() {
   });
 
   async function getTopTracks() {
-    if (!accessToken()) return
+    if (!accessToken()) return;
 
     const topTracks = await fetchWebApi(
       accessToken()!,
@@ -40,7 +41,7 @@ function Dashboard() {
   }
 
   async function getMyPlaylists() {
-    if (!accessToken()) return
+    if (!accessToken()) return;
 
     const myPlaylists = await fetchWebApi(
       accessToken()!,
@@ -49,7 +50,6 @@ function Dashboard() {
     );
     setPlaylists(myPlaylists);
   }
-
 
   createEffect(() => {
     console.log({ pl: playlists(), tt: topTracks() });
@@ -66,15 +66,8 @@ function Dashboard() {
             <Button onClick={() => getTopTracks()}>get Top Tracks</Button>
             <Button onClick={() => getMyPlaylists()}>get Playlists</Button>
           </Card>
-          {/* {topTracks() &&
-            topTracks()?.map(({ name, artists }) => (
-              <Card>
-                ` ${name} by ${artists.map((artist) => artist.name).join(", ")}`
-              </Card>
-            ))} */}
         </Show>
       </Box>
-      {/* <PlaylistCard></PlaylistCard> */}
       {/* {playlists() && (
         <List>
           {playlists()?.map((item, index) => (
@@ -82,6 +75,39 @@ function Dashboard() {
           ))}
         </List>
       )} */}
+      <div
+        ondragover={(e) => e.preventDefault()}
+        ondragenter={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log(e);
+          
+          setDragover(true);
+        }}
+        ondragleave={(e) => {
+          e.preventDefault();
+          console.log(e);
+
+          setDragover(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          const url = e.dataTransfer.getData("text/plain");
+          setDragover(false);
+          console.log(url);
+        }}
+      >
+        <Box
+          border={"2px primary dotted"}
+          borderRadius={'1rem'}
+          width={"50%"}
+          minHeight={200}
+          backgroundColor={dragOver() ? "green" : "transparent"}
+        >
+          put your data inside me
+        </Box>
+      </div>
+
       {errorMessage() && <h3>{errorMessage()}</h3>}
     </Container>
   );
