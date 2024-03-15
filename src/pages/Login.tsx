@@ -1,7 +1,9 @@
-import './Intro.scss'
-import { generateCodeChallenge, codeVerifier } from '../utils/encrypt'
-import { Button } from '@suid/material'
-import { redirectUri } from '../utils/authorization'
+import './Intro.scss';
+
+import { Button } from '@suid/material';
+
+import { redirectUri } from '../utils/authorization';
+import { codeVerifier, generateCodeChallenge } from '../utils/encrypt';
 
 const authUrl = new URL("https://accounts.spotify.com/authorize")
 const scope = 'user-library-read user-top-read playlist-modify-private playlist-modify-public'
@@ -26,7 +28,7 @@ function Login() {
     };
 
     return (
-        <Button onClick={() => handleLogin()}>Login</Button>
+        <Button variant='contained' color='primary' onClick={() => handleLogin()}>Login</Button>
     )
 }
 

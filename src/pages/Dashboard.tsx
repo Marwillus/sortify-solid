@@ -98,11 +98,11 @@ function Dashboard() {
         }}
       >
         <Box
-          border={"2px primary dotted"}
+          border={"2px red dotted"}
           borderRadius={'1rem'}
           width={"50%"}
           minHeight={200}
-          backgroundColor={dragOver() ? "green" : "transparent"}
+          backgroundColor={dragOver() ? "green" : "background.default"}
         >
           put your data inside me
         </Box>
