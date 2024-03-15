@@ -1,9 +1,10 @@
 import { createEffect, createSignal, onMount, Show } from 'solid-js';
 
-import { Box, Button, Card, Container, Typography } from '@suid/material';
+import { Box, Button, Card, Container, List, ListItem, Paper, Typography } from '@suid/material';
 
 import { fetchWebApi } from '../utils/api';
 import { isTokenExpired } from '../utils/authorization';
+import { mockPlaylistResponse } from '../utils/mockdata';
 import Login from './Login';
 
 function Dashboard() {
@@ -11,7 +12,10 @@ function Dashboard() {
     string | undefined | null
   >();
   const [topTracks, setTopTracks] = createSignal<string | undefined | null>();
-  const [playlists, setPlaylists] = createSignal<any>();
+  const [playlists, setPlaylists] =
+    createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>(
+      mockPlaylistResponse
+    );
   const [errorMessage, setErrorMessage] = createSignal("");
   const [dragOver, setDragover] = createSignal(false);
   console.log("render Dashboard");
@@ -68,14 +72,8 @@ function Dashboard() {
           </Card>
         </Show>
       </Box>
-      {/* {playlists() && (
-        <List>
-          {playlists()?.map((item, index) => (
-            <ListItem>{item.name}</ListItem>
-          ))}
-        </List>
-      )} */}
-      <div
+
+      {/* <div
         ondragover={(e) => e.preventDefault()}
         ondragenter={(e) => {
           e.preventDefault();
@@ -106,7 +104,44 @@ function Dashboard() {
         >
           put your data inside me
         </Box>
-      </div>
+      </div> */}
+      <Paper elevation={2}>
+        {playlists() && (
+          <List>
+            {playlists()?.items.map((item) => (
+              <ListItem>
+                <Paper
+                  elevation={5}
+                  sx={{
+                    flexGrow:1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                    borderRadius: "4px",
+                    overflow: "hidden",
+                    padding: "0.5rem",
+                  }}
+                >
+                  {item.images.at(-1) && (
+                    <img
+                      src={item.images.at(-1)!.url}
+                      alt=""
+                      width={60}
+                      height={60}
+                    />
+                  )}
+                  <Box paddingInlineEnd={'1rem'}>
+                    <Typography>{item.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Total: {item.tracks.total}
+                    </Typography>
+                  </Box>
+                </Paper>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Paper>
 
       {errorMessage() && <h3>{errorMessage()}</h3>}
     </Container>
