@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onMount, Show } from 'solid-js';
+import { Component, createEffect, createSignal, onMount, Show } from 'solid-js';
 
 import { Box, Button, Card, Container, List, ListItem, Paper, Typography } from '@suid/material';
 
@@ -59,6 +59,33 @@ function Dashboard() {
     console.log({ pl: playlists(), tt: topTracks() });
   });
 
+  const PlaylistItem: Component<{name: string, totalTracks: string | number, imageObject?: SpotifyApi.ImageObject}> = (props) => (
+    <ListItem>
+      <Paper
+        elevation={5}
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: "1rem",
+          borderRadius: "4px",
+          overflow: "hidden",
+          padding: "0.5rem",
+        }}
+      >
+        {props.imageObject && (
+          <img src={props.imageObject.url} alt="" width={60} height={60} />
+        )}
+        <Box paddingInlineEnd={"1rem"}>
+          <Typography>{props.name}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Total: {props.totalTracks}
+          </Typography>
+        </Box>
+      </Paper>
+    </ListItem>
+  );
+
   return (
     <Container>
       <Typography variant="h1">Dashboard</Typography>
@@ -109,35 +136,36 @@ function Dashboard() {
         {playlists() && (
           <List>
             {playlists()?.items.map((item) => (
-              <ListItem>
-                <Paper
-                  elevation={5}
-                  sx={{
-                    flexGrow:1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "1rem",
-                    borderRadius: "4px",
-                    overflow: "hidden",
-                    padding: "0.5rem",
-                  }}
-                >
-                  {item.images.at(-1) && (
-                    <img
-                      src={item.images.at(-1)!.url}
-                      alt=""
-                      width={60}
-                      height={60}
-                    />
-                  )}
-                  <Box paddingInlineEnd={'1rem'}>
-                    <Typography>{item.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total: {item.tracks.total}
-                    </Typography>
-                  </Box>
-                </Paper>
-              </ListItem>
+              <PlaylistItem imageObject={item.images.at(-1)} name={item.name} totalTracks={item.tracks.total} />
+              // <ListItem>
+              //   <Paper
+              //     elevation={5}
+              //     sx={{
+              //       flexGrow: 1,
+              //       display: "flex",
+              //       alignItems: "center",
+              //       gap: "1rem",
+              //       borderRadius: "4px",
+              //       overflow: "hidden",
+              //       padding: "0.5rem",
+              //     }}
+              //   >
+              //     {item.images.at(-1) && (
+              //       <img
+              //         src={item.images.at(-1)!.url}
+              //         alt=""
+              //         width={60}
+              //         height={60}
+              //       />
+              //     )}
+              //     <Box paddingInlineEnd={"1rem"}>
+              //       <Typography>{item.name}</Typography>
+              //       <Typography variant="body2" color="text.secondary">
+              //         Total: {item.tracks.total}
+              //       </Typography>
+              //     </Box>
+              //   </Paper>
+              // </ListItem>
             ))}
           </List>
         )}
