@@ -1,6 +1,6 @@
 import { createEffect, createSignal, onMount, Show } from 'solid-js';
 
-import { Box, Button, Card, Container, List, Paper, Typography } from '@suid/material';
+import { Box, Button, Card, Container, List, Paper, Stack, Typography } from '@suid/material';
 
 import { PlaylistItem } from '../components/PlaylistItem/PlaylistItem';
 import { fetchWebApi } from '../utils/api';
@@ -17,6 +17,8 @@ function Dashboard() {
     createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>(
       mockPlaylistResponse
     );
+  const [toPlaylists, setToPlaylists] =
+    createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>();
   const [errorMessage, setErrorMessage] = createSignal("");
   const [dragOver, setDragover] = createSignal(false);
   console.log("render Dashboard");
@@ -106,15 +108,42 @@ function Dashboard() {
           put your data inside me
         </Box>
       </div> */}
-      <Paper elevation={2}>
-        {playlists() && (
-          <List>
-            {playlists()?.items.map((item) => (
-              <PlaylistItem imageObject={item.images.at(-1)} name={item.name} totalTracks={item.tracks.total} />
-            ))}
-          </List>
-        )}
-      </Paper>
+      <Stack direction={"row"} gap={"1rem"}>
+        <Box flexGrow={1}>
+          <Typography variant="h4">From</Typography>
+
+          <Paper elevation={2}>
+            {playlists() && (
+              <List>
+                {playlists()?.items.map((item) => (
+                  <PlaylistItem
+                    imageObject={item.images.at(-1)}
+                    name={item.name}
+                    totalTracks={item.tracks.total}
+                  />
+                ))}
+              </List>
+            )}
+          </Paper>
+        </Box>
+        <Box flexGrow={1}>
+          <Typography variant="h4">To</Typography>
+
+          <Paper elevation={2}>
+            {toPlaylists() && (
+              <List>
+                {toPlaylists()?.items.map((item) => (
+                  <PlaylistItem
+                    imageObject={item.images.at(-1)}
+                    name={item.name}
+                    totalTracks={item.tracks.total}
+                  />
+                ))}
+              </List>
+            )}
+          </Paper>
+        </Box>
+      </Stack>
 
       {errorMessage() && <h3>{errorMessage()}</h3>}
     </Container>

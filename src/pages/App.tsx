@@ -3,22 +3,25 @@ import './Intro.scss';
 import { Route, Router } from '@solidjs/router';
 import { createTheme, ThemeProvider } from '@suid/material';
 
+import { PlaylistsProvider } from '../context/PlaylistProvider';
 import Callback from './Callback';
 import Dashboard from './Dashboard';
 
 function App() {
   const theme = createTheme({
     palette: {
-      mode:'dark'
-    }
+      mode: "dark",
+    },
   });
 
   return (
     <ThemeProvider theme={theme}>
-      <Router>
-        <Route path="/" component={Dashboard} />
-        <Route path="/callback" component={Callback} />
-      </Router>
+      <PlaylistsProvider>
+        <Router>
+          <Route path="/" component={Dashboard} />
+          <Route path="/callback" component={Callback} />
+        </Router>
+      </PlaylistsProvider>
     </ThemeProvider>
   );
 }
