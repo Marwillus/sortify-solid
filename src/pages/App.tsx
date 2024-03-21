@@ -1,5 +1,3 @@
-import './Intro.scss';
-
 import { Route, Router } from '@solidjs/router';
 import { createTheme, ThemeProvider } from '@suid/material';
 

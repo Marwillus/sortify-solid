@@ -1,6 +1,10 @@
 import { createEffect, createSignal, onMount, Show } from 'solid-js';
 
 import { Box, Button, Card, Container, List, Paper, Stack, Typography } from '@suid/material';
+import {
+    createDraggable, createDroppable, DragDropProvider, DragDropSensors, DragEventHandler,
+    DragOverlay
+} from '@thisbeyond/solid-dnd';
 
 import { PlaylistItem } from '../components/PlaylistItem/PlaylistItem';
 import { fetchWebApi } from '../utils/api';
@@ -8,20 +12,58 @@ import { isTokenExpired } from '../utils/authorization';
 import { mockPlaylistResponse } from '../utils/mockdata';
 import Login from './Login';
 
+const Draggable = () => {
+  const draggable = createDraggable(1);
+  return (
+    <div
+      use:draggable
+      class="draggable"
+      classList={{ "opacity-25": draggable.isActiveDraggable }}
+    >
+      Draggable
+    </div>
+  );
+};
+
+const Droppable = (props) => {
+  const droppable = createDroppable(1);
+  return (
+    <div
+      use:droppable
+      class="droppable"
+      classList={{ "!droppable-accept": droppable.isActiveDroppable }}
+    >
+      Droppable.
+      {props.children}
+    </div>
+  );
+};
+
 function Dashboard() {
   const [accessToken, setAccessToken] = createSignal<
     string | undefined | null
   >();
-  const [topTracks, setTopTracks] = createSignal<string | undefined | null>();
-  const [playlists, setPlaylists] =
+  const [fromPlaylists, setFromPlaylists] =
     createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>(
       mockPlaylistResponse
     );
+  const [fromTracklist, setFromTracklist] =
+    createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>();
   const [toPlaylists, setToPlaylists] =
     createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>();
   const [errorMessage, setErrorMessage] = createSignal("");
   const [dragOver, setDragover] = createSignal(false);
   console.log("render Dashboard");
+
+  const [where, setWhere] = createSignal("outside");
+
+  const onDragEnd: DragEventHandler = ({ droppable }) => {
+    if (droppable) {
+      setWhere("inside");
+    } else {
+      setWhere("outside");
+    }
+  };
 
   if (!accessToken()) {
     setAccessToken(window.localStorage.getItem("access_token"));
@@ -36,30 +78,26 @@ function Dashboard() {
     }
   });
 
-  async function getTopTracks() {
-    if (!accessToken()) return;
-
-    const topTracks = await fetchWebApi(
-      accessToken()!,
-      "v1/me/top/tracks?time_range=long_term&limit=5",
-      "GET"
-    );
-    setTopTracks(topTracks.items);
-  }
-
   async function getMyPlaylists() {
-    if (!accessToken()) return;
-
     const myPlaylists = await fetchWebApi(
       accessToken()!,
       "v1/me/playlists",
       "GET"
     );
-    setPlaylists(myPlaylists);
+    setFromPlaylists(myPlaylists);
+  }
+
+  async function getPlaylistTracks(playlistId: string) {
+    const fromTracklists = await fetchWebApi(
+      accessToken()!,
+      `v1/me/playlists/${playlistId}/tracks`,
+      "GET"
+    );
+    setToPlaylists(fromTracklists);
   }
 
   createEffect(() => {
-    console.log({ pl: playlists(), tt: topTracks() });
+    console.log({ pl: fromPlaylists(), tl: fromTracklist() });
   });
 
   return (
@@ -70,11 +108,62 @@ function Dashboard() {
       <Box my={"2rem"}>
         <Show when={accessToken()} fallback={<Login />}>
           <Card>
-            <Button onClick={() => getTopTracks()}>get Top Tracks</Button>
             <Button onClick={() => getMyPlaylists()}>get Playlists</Button>
           </Card>
         </Show>
       </Box>
+
+      <DragDropProvider onDragEnd={onDragEnd}>
+        <DragDropSensors />
+        <Box height={'4rem'}>
+        <Show when={where() === "outside"}>
+          <Draggable />
+        </Show>
+      </Box>
+      <Droppable>
+        <Show when={where() === "inside"}>
+          <Draggable />
+        </Show>
+      </Droppable>
+      <DragOverlay>
+        <div class="draggable">Drag Overlay!</div>
+      </DragOverlay>
+      </DragDropProvider>
+      <Stack direction={"row"} spacing={"1rem"} divider>
+        <Box flexGrow={1}>
+          <Typography variant="h4">From</Typography>
+          <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
+            {fromPlaylists() && (
+              <List>
+                {fromPlaylists()?.items.map((item) => (
+                  <PlaylistItem
+                    imageObject={item.images.at(-1)}
+                    name={item.name}
+                    totalTracks={item.tracks.total}
+                  />
+                ))}
+              </List>
+            )}
+          </Paper>
+        </Box>
+        <Box flexGrow={1}>
+          <Typography variant="h4">To</Typography>
+
+          <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
+            <List>
+              {toPlaylists() &&
+                toPlaylists()?.items.map((item) => (
+                  <PlaylistItem
+                    imageObject={item.images.at(-1)}
+                    name={item.name}
+                    totalTracks={item.tracks.total}
+                  />
+                ))}
+            </List>
+          </Paper>
+        </Box>
+      </Stack>
+      {errorMessage() && <h3>{errorMessage()}</h3>}
 
       {/* <div
         ondragover={(e) => e.preventDefault()}
@@ -108,44 +197,6 @@ function Dashboard() {
           put your data inside me
         </Box>
       </div> */}
-      <Stack direction={"row"} gap={"1rem"}>
-        <Box flexGrow={1}>
-          <Typography variant="h4">From</Typography>
-
-          <Paper elevation={2}>
-            {playlists() && (
-              <List>
-                {playlists()?.items.map((item) => (
-                  <PlaylistItem
-                    imageObject={item.images.at(-1)}
-                    name={item.name}
-                    totalTracks={item.tracks.total}
-                  />
-                ))}
-              </List>
-            )}
-          </Paper>
-        </Box>
-        <Box flexGrow={1}>
-          <Typography variant="h4">To</Typography>
-
-          <Paper elevation={2}>
-            {toPlaylists() && (
-              <List>
-                {toPlaylists()?.items.map((item) => (
-                  <PlaylistItem
-                    imageObject={item.images.at(-1)}
-                    name={item.name}
-                    totalTracks={item.tracks.total}
-                  />
-                ))}
-              </List>
-            )}
-          </Paper>
-        </Box>
-      </Stack>
-
-      {errorMessage() && <h3>{errorMessage()}</h3>}
     </Container>
   );
 }

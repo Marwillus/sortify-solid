@@ -1,5 +1,3 @@
-import './Intro.scss';
-
 import { Button } from '@suid/material';
 
 import { redirectUri } from '../utils/authorization';
