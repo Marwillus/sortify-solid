@@ -1,46 +1,19 @@
 import { createEffect, createSignal, onMount, Show } from 'solid-js';
 
-import { Box, Button, Card, Container, List, Paper, Stack, Typography } from '@suid/material';
 import {
-    createDroppable, DragDropProvider, DragDropSensors, DragEventHandler, DragOverlay
+    Box, Button, Card, Container, List, ListItem, Paper, Stack, Typography
+} from '@suid/material';
+import {
+    DragDropProvider, DragDropSensors, DragEventHandler, DragOverlay
 } from '@thisbeyond/solid-dnd';
 
+import Draggable from '../components/DragAndDrop/Draggable';
+import Droppable from '../components/DragAndDrop/Droppable';
 import { PlaylistItem } from '../components/PlaylistItem/PlaylistItem';
 import { fetchWebApi } from '../utils/api';
 import { isTokenExpired } from '../utils/authorization';
 import { mockPlaylistResponse } from '../utils/mockdata';
 import Login from './Login';
-
-// const Draggable = () => {
-//   const draggable = createDraggable(1);
-//   return (
-//     <div
-//       // @ts-ignore:next-line
-//       use:draggable
-//       class="draggable"
-//       classList={{ "opacity-25": draggable.isActiveDraggable }}
-//     >
-//       Draggable
-//     </div>
-//   );
-// };
-
-// const Droppable = (props) => {
-//   const droppable = createDroppable(1);
-//   return (
-//     <div
-//       // @ts-ignore:next-line
-//       use:droppable
-//       class="droppable"
-//       classList={{ "!droppable-accept": droppable.isActiveDroppable }}
-//     >
-//       <Box backgroundColor="blue">
-//         Droppable.
-//         {props.children}
-//       </Box>
-//     </div>
-//   );
-// };
 
 function Dashboard() {
   const [accessToken, setAccessToken] = createSignal<
@@ -60,10 +33,11 @@ function Dashboard() {
 
   const [where, setWhere] = createSignal("outside");
 
-  const droppable = createDroppable(1);
   const onDragEnd: DragEventHandler = ({ droppable }) => {
     if (droppable) {
       console.log("dropped in Box");
+      console.log(droppable.data);
+      
     } else {
       console.log("dropped outside Box");
     }
@@ -119,54 +93,50 @@ function Dashboard() {
 
       <DragDropProvider onDragEnd={onDragEnd}>
         <DragDropSensors />
-        <Box height={'4rem'}>
-        <Show when={where() === "outside"}>
-          <Draggable />
-        </Show>
-      </Box>
-      <Droppable>
-        <Show when={where() === "inside"}>
-          <Draggable />
-        </Show>
-      </Droppable>
-      <DragOverlay>
-        <div class="draggable">Drag Overlay!</div>
-      </DragOverlay>
-      </DragDropProvider>
-      <Stack direction={"row"} spacing={"1rem"} divider>
-        <Box flexGrow={1}>
-          <Typography variant="h4">From</Typography>
-          <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
-            {fromPlaylists() && (
-              <List>
-                {fromPlaylists()?.items.map((item) => (
-                  <PlaylistItem
-                    imageObject={item.images.at(-1)}
-                    name={item.name}
-                    totalTracks={item.tracks.total}
-                  />
-                ))}
-              </List>
-            )}
-          </Paper>
-        </Box>
-        <Box flexGrow={1}>
-          <Typography variant="h4">To</Typography>
+        <DragOverlay>
+          <div class="draggable">Drag Overlay!</div>
+        </DragOverlay>
+        <Stack direction={"row"} spacing={"1rem"} divider>
+          <Box flexGrow={1}>
+            <Typography variant="h4">From</Typography>
+            <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
+              {fromPlaylists() && (
+                <List>
+                  {fromPlaylists()?.items.map((item, index) => (
+                    <ListItem>
+                      <Draggable id={`drag-from-${index}`}>
+                        <PlaylistItem
+                          imageObject={item.images.at(-1)}
+                          name={item.name}
+                          totalTracks={item.tracks.total}
+                        />
+                      </Draggable>
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Paper>
+          </Box>
+          <Box flexGrow={1}>
+            <Typography variant="h4">To</Typography>
 
-          <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
-            <List>
-              {toPlaylists() &&
-                toPlaylists()?.items.map((item) => (
-                  <PlaylistItem
-                    imageObject={item.images.at(-1)}
-                    name={item.name}
-                    totalTracks={item.tracks.total}
-                  />
-                ))}
-            </List>
-          </Paper>
-        </Box>
-      </Stack>
+            <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
+              <Droppable>
+                <List>
+                  {toPlaylists() &&
+                    toPlaylists()?.items.map((item) => (
+                      <PlaylistItem
+                        imageObject={item.images.at(-1)}
+                        name={item.name}
+                        totalTracks={item.tracks.total}
+                      />
+                    ))}
+                </List>
+              </Droppable>
+            </Paper>
+          </Box>
+        </Stack>
+      </DragDropProvider>
       {errorMessage() && <h3>{errorMessage()}</h3>}
 
       {/* <div
