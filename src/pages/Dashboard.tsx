@@ -23,9 +23,9 @@ function Dashboard() {
     createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>(
       mockPlaylistResponse
     );
-  const [fromTracklist, setFromTracklist] =
-    createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>();
   const [toPlaylists, setToPlaylists] =
+    createSignal<SpotifyApi.PlaylistObjectFull[]>();
+  const [fromTracklist, setFromTracklist] =
     createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>();
   const [errorMessage, setErrorMessage] = createSignal("");
   const [dragOver, setDragover] = createSignal(false);
@@ -33,11 +33,16 @@ function Dashboard() {
 
   const [where, setWhere] = createSignal("outside");
 
-  const onDragEnd: DragEventHandler = ({ droppable }) => {
+  const onDragEnd: DragEventHandler = ({ droppable, draggable }) => {
     if (droppable) {
       console.log("dropped in Box");
-      console.log(droppable.data);
-      
+      console.log(draggable.id);
+      setToPlaylists((prev) =>
+        prev
+          ? [...prev, JSON.parse(draggable.data)]
+          : [JSON.parse(draggable.data)]
+      );
+      // console.log(toPlaylists());
     } else {
       console.log("dropped outside Box");
     }
@@ -104,7 +109,10 @@ function Dashboard() {
                 <List>
                   {fromPlaylists()?.items.map((item, index) => (
                     <ListItem>
-                      <Draggable id={`drag-from-${index}`}>
+                      <Draggable
+                        id={`drag-from-${index}`}
+                        data={JSON.stringify(item)}
+                      >
                         <PlaylistItem
                           imageObject={item.images.at(-1)}
                           name={item.name}
@@ -121,15 +129,17 @@ function Dashboard() {
             <Typography variant="h4">To</Typography>
 
             <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
-              <Droppable>
+              <Droppable id="right-dropzone">
                 <List>
                   {toPlaylists() &&
-                    toPlaylists()?.items.map((item) => (
-                      <PlaylistItem
-                        imageObject={item.images.at(-1)}
-                        name={item.name}
-                        totalTracks={item.tracks.total}
-                      />
+                    toPlaylists()!.map((item) => (
+                      <ListItem>
+                        <PlaylistItem
+                          imageObject={item.images.at(-1)}
+                          name={item.name}
+                          totalTracks={item.tracks.total}
+                        />
+                      </ListItem>
                     ))}
                 </List>
               </Droppable>

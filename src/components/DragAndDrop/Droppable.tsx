@@ -4,8 +4,8 @@ import { ParentComponent } from 'solid-js';
 
 import { createDroppable } from '@thisbeyond/solid-dnd';
 
-const Droppable: ParentComponent = (props) => {
-  const droppable = createDroppable(1);
+const Droppable: ParentComponent<{ id: string, data?: any}> = (props) => {
+  const droppable = createDroppable(props.id, props.data);
   return (
     <div
       // @ts-ignore: next-line
