@@ -55,13 +55,11 @@ function Dashboard() {
   const [dragOver, setDragover] = createSignal(false);
   console.log("render Dashboard");
 
-  const [where, setWhere] = createSignal("outside");
-
   const onDragEnd: DragEventHandler = ({ droppable }) => {
     if (droppable) {
-      setWhere("inside");
+      console.log("dropped in Box");
     } else {
-      setWhere("outside");
+      console.log("dropped outside Box");
     }
   };
 
@@ -115,54 +113,47 @@ function Dashboard() {
 
       <DragDropProvider onDragEnd={onDragEnd}>
         <DragDropSensors />
-        <Box height={'4rem'}>
-        <Show when={where() === "outside"}>
-          <Draggable />
-        </Show>
-      </Box>
-      <Droppable>
-        <Show when={where() === "inside"}>
-          <Draggable />
-        </Show>
-      </Droppable>
-      <DragOverlay>
-        <div class="draggable">Drag Overlay!</div>
-      </DragOverlay>
-      </DragDropProvider>
-      <Stack direction={"row"} spacing={"1rem"} divider>
-        <Box flexGrow={1}>
-          <Typography variant="h4">From</Typography>
-          <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
-            {fromPlaylists() && (
-              <List>
-                {fromPlaylists()?.items.map((item) => (
-                  <PlaylistItem
-                    imageObject={item.images.at(-1)}
-                    name={item.name}
-                    totalTracks={item.tracks.total}
-                  />
-                ))}
-              </List>
-            )}
-          </Paper>
-        </Box>
-        <Box flexGrow={1}>
-          <Typography variant="h4">To</Typography>
 
-          <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
-            <List>
-              {toPlaylists() &&
-                toPlaylists()?.items.map((item) => (
-                  <PlaylistItem
-                    imageObject={item.images.at(-1)}
-                    name={item.name}
-                    totalTracks={item.tracks.total}
-                  />
-                ))}
-            </List>
-          </Paper>
-        </Box>
-      </Stack>
+        <DragOverlay>
+          <div class="draggable">Drag Overlay!</div>
+        </DragOverlay>
+        <Stack direction={"row"} spacing={"1rem"} divider>
+          <Box flexGrow={1}>
+            <Typography variant="h4">From</Typography>
+            <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
+              {fromPlaylists() && (
+                <List>
+                  {fromPlaylists()?.items.map((item) => (
+                    <PlaylistItem
+                      imageObject={item.images.at(-1)}
+                      name={item.name}
+                      totalTracks={item.tracks.total}
+                    />
+                  ))}
+                </List>
+              )}
+            </Paper>
+          </Box>
+          <Box flexGrow={1}>
+            <Typography variant="h4">To</Typography>
+
+            <div></div>
+            <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
+              <List>
+                {toPlaylists() &&
+                  toPlaylists()?.items.map((item) => (
+                    <PlaylistItem
+                      imageObject={item.images.at(-1)}
+                      name={item.name}
+                      totalTracks={item.tracks.total}
+                    />
+                  ))}
+              </List>
+            </Paper>
+          </Box>
+        </Stack>
+      </DragDropProvider>
+
       {errorMessage() && <h3>{errorMessage()}</h3>}
 
       {/* <div
