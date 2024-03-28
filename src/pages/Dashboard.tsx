@@ -3,9 +3,7 @@ import { createEffect, createSignal, onMount, Show } from 'solid-js';
 import {
     Box, Button, Card, Container, List, ListItem, Paper, Stack, Typography
 } from '@suid/material';
-import {
-    DragDropProvider, DragDropSensors, DragEventHandler, DragOverlay
-} from '@thisbeyond/solid-dnd';
+import { DragDropProvider, DragDropSensors, DragEventHandler } from '@thisbeyond/solid-dnd';
 
 import Draggable from '../components/DragAndDrop/Draggable';
 import Droppable from '../components/DragAndDrop/Droppable';
@@ -98,9 +96,6 @@ function Dashboard() {
 
       <DragDropProvider onDragEnd={onDragEnd}>
         <DragDropSensors />
-        <DragOverlay>
-          <div class="draggable">Drag Overlay!</div>
-        </DragOverlay>
         <Stack direction={"row"} spacing={"1rem"} divider>
           <Box flexGrow={1}>
             <Typography variant="h4">From</Typography>
