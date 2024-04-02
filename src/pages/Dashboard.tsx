@@ -144,7 +144,7 @@ function Dashboard() {
       </DragDropProvider>
       {errorMessage() && <h3>{errorMessage()}</h3>}
 
-      {/* <div
+      <div
         ondragover={(e) => e.preventDefault()}
         ondragenter={(e) => {
           e.preventDefault();
@@ -175,7 +175,7 @@ function Dashboard() {
         >
           put your data inside me
         </Box>
-      </div> */}
+      </div>
     </Container>
   );
 }
