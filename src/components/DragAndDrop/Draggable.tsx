@@ -10,6 +10,7 @@ const Draggable: ParentComponent<{ id: string | number, data?: any}> = (props) =
       use:draggable
       class="draggable"
       classList={{ "opacity-25": draggable.isActiveDraggable }}
+      style={{"flex-grow":1}}
     >
       {props.children}
     </div>

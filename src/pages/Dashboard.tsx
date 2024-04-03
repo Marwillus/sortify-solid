@@ -73,7 +73,7 @@ function Dashboard() {
     );
     console.log(playlistItem);
 
-    setFromPlaylists([...fromPlaylists(), playlistItem]);
+    setFromPlaylists(fromPlaylists() ? [...fromPlaylists(), playlistItem] : [playlistItem]);
   }
 
   async function getPlaylistTracks(playlistId: string) {
@@ -143,6 +143,7 @@ function Dashboard() {
                       if (playlistId) getPlaylist(playlistId);
                     }
                   }}
+                  style={{height:'100%', width: "100%",}}
                 >
                   {fromPlaylists() && (
                     <List>
