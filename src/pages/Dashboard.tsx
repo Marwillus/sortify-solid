@@ -10,7 +10,6 @@ import Droppable from '../components/DragAndDrop/Droppable';
 import { PlaylistItem } from '../components/PlaylistItem/PlaylistItem';
 import { fetchWebApi } from '../utils/api';
 import { isTokenExpired } from '../utils/authorization';
-import { mockPlaylistResponse } from '../utils/mockdata';
 import Login from './Login';
 
 function Dashboard() {
@@ -18,9 +17,7 @@ function Dashboard() {
     string | undefined | null
   >();
   const [fromPlaylists, setFromPlaylists] =
-    createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>(
-      mockPlaylistResponse
-    );
+    createSignal<SpotifyApi.PlaylistObjectFull[]>();
   const [toPlaylists, setToPlaylists] =
     createSignal<SpotifyApi.PlaylistObjectFull[]>();
   const [fromTracklist, setFromTracklist] =
@@ -65,7 +62,18 @@ function Dashboard() {
       "v1/me/playlists",
       "GET"
     );
-    setFromPlaylists(myPlaylists);
+    setFromPlaylists(myPlaylists.items);
+  }
+
+  async function getPlaylist(playlistId: string) {
+    const playlistItem = await fetchWebApi(
+      accessToken()!,
+      `v1/playlists/${playlistId}`,
+      "GET"
+    );
+    console.log(playlistItem);
+
+    setFromPlaylists([...fromPlaylists(), playlistItem]);
   }
 
   async function getPlaylistTracks(playlistId: string) {
@@ -86,96 +94,101 @@ function Dashboard() {
       <Typography variant="h1">Dashboard</Typography>
       <Typography>Copy Playlists from Spotify to Your Account</Typography>
 
-      <Box my={"2rem"}>
-        <Show when={accessToken()} fallback={<Login />}>
+      <Show when={accessToken()} fallback={<Login />}>
+        <Box my={"2rem"}>
           <Card>
             <Button onClick={() => getMyPlaylists()}>get Playlists</Button>
           </Card>
-        </Show>
-      </Box>
-
-      <DragDropProvider onDragEnd={onDragEnd}>
-        <DragDropSensors />
-        <Stack direction={"row"} spacing={"1rem"} divider>
-          <Box flexGrow={1}>
-            <Typography variant="h4">From</Typography>
-            <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
-              {fromPlaylists() && (
-                <List>
-                  {fromPlaylists()?.items.map((item, index) => (
-                    <ListItem>
-                      <Draggable
-                        id={`drag-from-${index}`}
-                        data={JSON.stringify(item)}
-                      >
-                        <PlaylistItem
-                          imageObject={item.images.at(-1)}
-                          name={item.name}
-                          totalTracks={item.tracks.total}
-                        />
-                      </Draggable>
-                    </ListItem>
-                  ))}
-                </List>
-              )}
-            </Paper>
-          </Box>
-          <Box flexGrow={1}>
-            <Typography variant="h4">To</Typography>
-
-            <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
-              <Droppable id="right-dropzone">
-                <List>
-                  {toPlaylists() &&
-                    toPlaylists()!.map((item) => (
-                      <ListItem>
-                        <PlaylistItem
-                          imageObject={item.images.at(-1)}
-                          name={item.name}
-                          totalTracks={item.tracks.total}
-                        />
-                      </ListItem>
-                    ))}
-                </List>
-              </Droppable>
-            </Paper>
-          </Box>
-        </Stack>
-      </DragDropProvider>
-      {errorMessage() && <h3>{errorMessage()}</h3>}
-
-      <div
-        ondragover={(e) => e.preventDefault()}
-        ondragenter={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log(e);
-          
-          setDragover(true);
-        }}
-        ondragleave={(e) => {
-          e.preventDefault();
-          console.log(e);
-
-          setDragover(false);
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
-          const url = e.dataTransfer.getData("text/plain");
-          setDragover(false);
-          console.log(url);
-        }}
-      >
-        <Box
-          border={"2px red dotted"}
-          borderRadius={'1rem'}
-          width={"50%"}
-          minHeight={200}
-          backgroundColor={dragOver() ? "green" : "background.default"}
-        >
-          put your data inside me
         </Box>
-      </div>
+
+        <DragDropProvider onDragEnd={onDragEnd}>
+          <DragDropSensors />
+          <Stack
+            direction={"row"}
+            spacing={"1rem"}
+            divider
+            sx={{ minHeight: "400px" }}
+          >
+            <Box flexGrow={1}>
+              <Typography variant="h4">From</Typography>
+
+              <Paper
+                elevation={2}
+                sx={{
+                  height: "100%",
+                  width: "100%",
+                  outline: dragOver() ? "#ddd dashed 3px" : "",
+                  outlineOffset: "-0.5rem",
+                }}
+              >
+                <div
+                  ondragover={(e) => {
+                    e.preventDefault();
+                  }}
+                  ondragenter={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDragover(true);
+                  }}
+                  ondragleave={(e) => {
+                    e.preventDefault();
+                    setDragover(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const url = e.dataTransfer.getData("text/plain");
+                    setDragover(false);
+                    if (url.includes("playlist")) {
+                      const playlistId = url.split("/").at(-1);
+                      if (playlistId) getPlaylist(playlistId);
+                    }
+                  }}
+                >
+                  {fromPlaylists() && (
+                    <List>
+                      {fromPlaylists()!.map((item, index) => (
+                        <ListItem>
+                          <Draggable
+                            id={`drag-from-${index}`}
+                            data={JSON.stringify(item)}
+                          >
+                            <PlaylistItem
+                              imageObject={item.images.at(-1)}
+                              name={item.name}
+                              totalTracks={item.tracks.total}
+                            />
+                          </Draggable>
+                        </ListItem>
+                      ))}
+                    </List>
+                  )}
+                </div>
+              </Paper>
+            </Box>
+            <Box flexGrow={1}>
+              <Typography variant="h4">To</Typography>
+
+              <Paper elevation={2} sx={{ height: "100%", width: "100%" }}>
+                <Droppable id="right-dropzone">
+                  <List>
+                    {toPlaylists() &&
+                      toPlaylists()!.map((item) => (
+                        <ListItem>
+                          <PlaylistItem
+                            imageObject={item.images.at(-1)}
+                            name={item.name}
+                            totalTracks={item.tracks.total}
+                          />
+                        </ListItem>
+                      ))}
+                  </List>
+                </Droppable>
+              </Paper>
+            </Box>
+          </Stack>
+        </DragDropProvider>
+        {errorMessage() && <h3>{errorMessage()}</h3>}
+      </Show>
     </Container>
   );
 }
