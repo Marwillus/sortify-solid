@@ -10,7 +10,7 @@ export const PlaylistItem: Component<{
   imageObject?: SpotifyApi.ImageObject;
 }> = (props) => (
   <Paper
-    elevation={5}
+    elevation={3}
     sx={{
       flexGrow: 1,
       display: "flex",
