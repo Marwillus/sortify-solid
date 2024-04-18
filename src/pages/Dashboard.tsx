@@ -10,9 +10,8 @@ import { DragDropProvider, DragDropSensors, DragEventHandler } from '@thisbeyond
 import Draggable from '../components/DragAndDrop/Draggable';
 import Droppable from '../components/DragAndDrop/Droppable';
 import { PlaylistItem } from '../components/Playlist/PlaylistItem';
-import { fetchWebApi } from '../utils/api';
+import { getMyPlaylists, getPlaylist, getPlaylistTracks } from '../utils/api';
 import { isTokenExpired } from '../utils/authorization';
-import { mockPlaylistResponse } from '../utils/mockdata';
 import Login from './Login';
 
 function Dashboard() {
@@ -21,13 +20,16 @@ function Dashboard() {
   >();
   const [fromPlaylists, setFromPlaylists] =
     createSignal<SpotifyApi.PlaylistObjectFull[]>();
-  const [toPlaylists, setToPlaylists] = createSignal<
-    SpotifyApi.PlaylistObjectFull[]
-  >(mockPlaylistResponse.items);
+  const [toPlaylists, setToPlaylists] =
+    createSignal<SpotifyApi.PlaylistObjectFull[]>();
   const [fromTracklist, setFromTracklist] =
+    createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>();
+  const [toTracklist, setToTracklist] =
     createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>();
   const [errorMessage, setErrorMessage] = createSignal("");
   const [openDialog, setOpenDialog] = createSignal(false);
+  const [newPlaylistData, setNewPlaylistData] =
+    createSignal<SpotifyApi.PlaylistObjectFull>();
   console.log("render Dashboard");
 
   const onDragEnd: DragEventHandler = ({ droppable, draggable }) => {
@@ -58,45 +60,32 @@ function Dashboard() {
     }
   });
 
-  async function getMyPlaylists() {
-    const myPlaylists = await fetchWebApi(
-      accessToken()!,
-      "v1/me/playlists",
-      "GET"
-    );
+  async function showMyPlaylists() {
+    const myPlaylists = await getMyPlaylists(accessToken()!);
     setFromPlaylists(myPlaylists.items);
   }
 
-  async function getPlaylist(playlistId: string) {
-    const playlistItem = await fetchWebApi(
-      accessToken()!,
-      `v1/playlists/${playlistId}`,
-      "GET"
-    );
-    console.log(playlistItem);
-
+  async function addPlaylist(playlistId: string) {
+    const playlist = await getPlaylist(accessToken()!, playlistId);
     setFromPlaylists(
-      fromPlaylists() ? [...fromPlaylists(), playlistItem] : [playlistItem]
+      fromPlaylists() ? [...fromPlaylists(), playlist] : [playlist]
     );
   }
 
-  async function getPlaylistTracks(playlistId: string) {
-    const fromTracklists = await fetchWebApi(
-      accessToken()!,
-      `v1/me/playlists/${playlistId}/tracks`,
-      "GET"
-    );
-    setFromTracklist(fromTracklists);
-  }
-
-  async function showTracks(playlistId: string) {
-    getPlaylistTracks(playlistId);
+  async function showPlaylistTracks(playlistId: string) {
+    const tracklist = await getPlaylistTracks(accessToken()!, playlistId);
+    setFromTracklist(tracklist);
     console.log(fromTracklist());
   }
 
-  const handleDialogOpen = () => {
+  async function handleDialogOpen(playlist: SpotifyApi.PlaylistObjectFull) {
+    setNewPlaylistData(playlist);
     setOpenDialog(true);
-  };
+
+    const tracklist = await getPlaylistTracks(accessToken()!, playlist.id);
+    setToTracklist(tracklist);
+    console.log(toTracklist());
+  }
 
   const handleDialogClose = () => {
     setOpenDialog(false);
@@ -120,24 +109,17 @@ function Dashboard() {
       <Show when={accessToken()} fallback={<Login />}>
         <Box my={"2rem"}>
           <Card>
-            <Button onClick={() => getMyPlaylists()}>get my Playlists</Button>
+            <Button onClick={() => showMyPlaylists()}>get my Playlists</Button>
           </Card>
         </Box>
 
         <DragDropProvider onDragEnd={onDragEnd}>
           <DragDropSensors />
-          <Stack direction={"row"} spacing={"1rem"} divider>
+          <Stack direction={"row"} spacing={"1rem"} divider minHeight={400}>
             <Box flexGrow={1}>
               <Typography variant="h5">Playlists Pool</Typography>
 
-              <Paper
-                elevation={1}
-                sx={{
-                  height: "400px",
-                  width: "100%",
-                  // overflow: "auto",
-                }}
-              >
+              <Paper elevation={1} sx={{ height: "100%" }}>
                 {/* <Tracklist>
                   <List>
                     {[1, 2, 3].map(() => (
@@ -151,7 +133,7 @@ function Dashboard() {
                 {fromPlaylists() && (
                   <List>
                     {fromPlaylists()!.map((item, index) => (
-                      <ListItem onDblClick={() => showTracks(item.id)}>
+                      <ListItem onDblClick={() => showPlaylistTracks(item.id)}>
                         <Draggable
                           id={`drag-from-${index}`}
                           data={JSON.stringify(item)}
@@ -170,7 +152,7 @@ function Dashboard() {
             </Box>
             <Box flexGrow={1}>
               <Typography variant="h5">Selected Playlists</Typography>
-              <Paper elevation={1} sx={{ minHeight: "400px", width: "100%" }}>
+              <Paper elevation={1} sx={{ height: "100%" }}>
                 <Droppable id="right-dropzone">
                   <List>
                     {toPlaylists() &&
@@ -184,7 +166,7 @@ function Dashboard() {
                           <Button
                             variant="contained"
                             color="success"
-                            onclick={handleDialogOpen}
+                            onclick={() => handleDialogOpen(item)}
                           >
                             <BsSave size={"1.25rem"}></BsSave>
                           </Button>
@@ -205,15 +187,26 @@ function Dashboard() {
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle>Save Playlist</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection:'column', gap:'0.5rem' }}>
+        <DialogContent
+          sx={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
           <DialogContentText id="alert-dialog-slide-description">
-            Möchtest du diese Playlist so in deiner Spotify Bibliothek
-            erstellen?
+            {`Möchtest du diese Playlist mit ihren ${
+              newPlaylistData()?.tracks.total
+            } Tracks so in deiner Spotify Bibliothek
+            erstellen?`}
           </DialogContentText>
-          <TextField value={"name"}></TextField>
+          <TextField value={newPlaylistData()?.name}></TextField>
+          <TextField
+            placeholder={
+              newPlaylistData()?.description
+                ? (newPlaylistData()?.description as string)
+                : "Optionale Beschreibung"
+            }
+          ></TextField>
         </DialogContent>
         <DialogActions>
-          <Button color="success" variant='outlined' onClick={createPlaylist}>
+          <Button color="success" variant="outlined" onClick={createPlaylist}>
             Save
           </Button>
         </DialogActions>
