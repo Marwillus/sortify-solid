@@ -10,6 +10,7 @@ import { DragDropProvider, DragDropSensors, DragEventHandler } from '@thisbeyond
 import Draggable from '../components/DragAndDrop/Draggable';
 import Droppable from '../components/DragAndDrop/Droppable';
 import { PlaylistItem } from '../components/Playlist/PlaylistItem';
+import { usePlaylists } from '../context/PlaylistProvider';
 import { getMyPlaylists, getPlaylist, getPlaylistTracks } from '../utils/api';
 import { isTokenExpired } from '../utils/authorization';
 import Login from './Login';
@@ -18,14 +19,20 @@ function Dashboard() {
   const [accessToken, setAccessToken] = createSignal<
     string | undefined | null
   >();
-  const [fromPlaylists, setFromPlaylists] =
-    createSignal<SpotifyApi.PlaylistObjectFull[]>();
-  const [toPlaylists, setToPlaylists] =
-    createSignal<SpotifyApi.PlaylistObjectFull[]>();
-  const [fromTracklist, setFromTracklist] =
-    createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>();
-  const [toTracklist, setToTracklist] =
-    createSignal<SpotifyApi.PagingObject<SpotifyApi.PlaylistObjectFull>>();
+
+  const [
+    { fromPlaylists, toPlaylists, fromTracklist, toTracklist },
+    { setFromPlaylists, setToPlaylists, setFromTracklist, setToTracklist }
+  ] = usePlaylists();
+
+  // const [fromPlaylists, setFromPlaylists] =
+  //   createSignal<SpotifyApi.PlaylistObjectFull[]>();
+  // const [toPlaylists, setToPlaylists] =
+  //   createSignal<SpotifyApi.PlaylistObjectFull[]>();
+  // const [fromTracklist, setFromTracklist] =
+  //   createSignal<SpotifyApi.PagingObject<SpotifyApi.TrackObjectFull>>();
+  // const [toTracklist, setToTracklist] =
+  //   createSignal<SpotifyApi.PagingObject<SpotifyApi.TrackObjectFull>>();
   const [errorMessage, setErrorMessage] = createSignal("");
   const [openDialog, setOpenDialog] = createSignal(false);
   const [newPlaylistData, setNewPlaylistData] =
@@ -196,12 +203,13 @@ function Dashboard() {
             } Tracks so in deiner Spotify Bibliothek
             erstellen?`}
           </DialogContentText>
-          <TextField value={newPlaylistData()?.name}></TextField>
+          <TextField label="Name" value={newPlaylistData()?.name}></TextField>
           <TextField
+            label="Beschreibung"
             placeholder={
               newPlaylistData()?.description
                 ? (newPlaylistData()?.description as string)
-                : "Optionale Beschreibung"
+                : "Das ist optional"
             }
           ></TextField>
         </DialogContent>

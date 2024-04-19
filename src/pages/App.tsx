@@ -1,6 +1,7 @@
 import { Route, Router } from '@solidjs/router';
 import { createTheme, ThemeProvider } from '@suid/material';
 
+import { PlaylistsProvider } from '../context/PlaylistProvider';
 import Callback from './Callback';
 import Dashboard from './Dashboard';
 
@@ -13,12 +14,12 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      {/* <PlaylistsProvider> */}
+      <PlaylistsProvider>
         <Router>
           <Route path="/" component={Dashboard} />
           <Route path="/callback" component={Callback} />
         </Router>
-      {/* </PlaylistsProvider> */}
+      </PlaylistsProvider>
     </ThemeProvider>
   );
 }
