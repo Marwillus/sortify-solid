@@ -20,6 +20,7 @@ export const PlaylistItem: Component<{
       overflow: "hidden",
       padding: "0.5rem",
     }}
+    class='playlist-item'
   >
     {props.imageObject && (
       <img src={props.imageObject.url} alt="" width={60} height={60} />
@@ -27,7 +28,7 @@ export const PlaylistItem: Component<{
     <Box paddingInlineEnd={"1rem"}>
       <Typography>{props.name}</Typography>
       <Typography variant="body2" color="text.secondary">
-        Total: {props.totalTracks}
+        {props.totalTracks} Songs
       </Typography>
     </Box>
   </Paper>

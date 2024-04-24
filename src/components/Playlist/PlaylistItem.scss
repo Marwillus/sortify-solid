@@ -1,5 +1,7 @@
-.playlistItem {
+.playlist-item {
+    user-select: none;
+
     &:hover {
-        background-color: aliceblue;
+        background-color: rgba(240, 248, 255, 0.13);
     }
 }

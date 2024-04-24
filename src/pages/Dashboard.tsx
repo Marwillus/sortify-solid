@@ -25,14 +25,6 @@ function Dashboard() {
     { setFromPlaylists, setToPlaylists, setFromTracklist, setToTracklist }
   ] = usePlaylists();
 
-  // const [fromPlaylists, setFromPlaylists] =
-  //   createSignal<SpotifyApi.PlaylistObjectFull[]>();
-  // const [toPlaylists, setToPlaylists] =
-  //   createSignal<SpotifyApi.PlaylistObjectFull[]>();
-  // const [fromTracklist, setFromTracklist] =
-  //   createSignal<SpotifyApi.PagingObject<SpotifyApi.TrackObjectFull>>();
-  // const [toTracklist, setToTracklist] =
-  //   createSignal<SpotifyApi.PagingObject<SpotifyApi.TrackObjectFull>>();
   const [errorMessage, setErrorMessage] = createSignal("");
   const [openDialog, setOpenDialog] = createSignal(false);
   const [newPlaylistData, setNewPlaylistData] =
