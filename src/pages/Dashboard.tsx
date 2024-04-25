@@ -79,7 +79,7 @@ function Dashboard() {
 
     const tracklist = await getPlaylistTracks(accessToken()!, playlist.id);
     setToTracklist(tracklist);
-    console.log(toTracklist());
+    console.log(newPlaylistData());
   }
 
   const handleDialogClose = () => {

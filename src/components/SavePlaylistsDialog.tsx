@@ -1,21 +1,45 @@
-import { Accessor, Component, Setter } from 'solid-js';
+import { Accessor, Component, createSignal, Setter } from 'solid-js';
 
 import {
-    Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-    TextField
+    Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel,
+    Switch, TextField
 } from '@suid/material';
+
+import { usePlaylists } from '../context/PlaylistProvider';
+import { createPlaylist, getCurrentUser } from '../utils/api';
 
 const SavePlaylistsDialog: Component<{
   playlist: SpotifyApi.PlaylistObjectFull;
-  openDialog: Accessor<boolean>
-  setOpenDialog: Setter<boolean>
+  openDialog: Accessor<boolean>;
+  setOpenDialog: Setter<boolean>;
 }> = (props) => {
+  const [{ accessToken }] = usePlaylists();
+
+  const [name, setName] = createSignal(props.playlist.name + " copy");
+  const [description, setDescription] = createSignal(
+    props.playlist.description || ""
+  );
+  const [isPublic, setIsPublic] = createSignal(true);
+
   const handleDialogClose = () => {
     props.setOpenDialog(false);
   };
 
-  async function createPlaylist() {
+  async function savePlaylist(e: SubmitEvent) {
+    e.preventDefault();
     console.log("save Playlist");
+    if (!accessToken()) return;
+
+    const user = await getCurrentUser(accessToken()!);
+    const newPlaylist = await createPlaylist(
+      accessToken()!,
+      user.id,
+      name(),
+      description(),
+      isPublic()
+    );
+    console.log(newPlaylist);
+    // const response = await addTracksToPlaylist(accessToken()!, props.playlist.tracks.)
   }
 
   return (
@@ -26,31 +50,48 @@ const SavePlaylistsDialog: Component<{
       aria-describedby="alert-dialog-slide-description"
     >
       <DialogTitle>Save Playlist</DialogTitle>
-      <DialogContent
-        sx={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
-      >
-        <DialogContentText id="alert-dialog-slide-description">
-        {`Möchtest du diese Playlist mit ihren ${
-              props.playlist.tracks.total
-            } Tracks so in deiner Spotify Bibliothek
+      <form onSubmit={savePlaylist}>
+        <DialogContent
+          sx={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
+          <DialogContentText
+            id="alert-dialog-slide-description"
+            sx={{ marginBottom: "1rem" }}
+          >
+            {`Möchtest du diese Playlist mit ihren ${props.playlist.tracks.total} Tracks so in deiner Spotify Bibliothek
             erstellen?`}
-        </DialogContentText>
-          <TextField label="Name" value={props.playlist.name}></TextField>
-        <TextField
+          </DialogContentText>
+          <TextField
+            label="Name"
+            value={name()}
+            onChange={(e) => setName(e.target.value)}
+          ></TextField>
+          <TextField
             label="Beschreibung"
             placeholder={
-              props.playlist.description
-                ? (props.playlist.description as string)
-                : "Das ist optional"
+              description() ? (description() as string) : "Das ist optional"
             }
+            value={description()}
+            onChange={(e) => setDescription(e.target.value)}
           ></TextField>
-        <Checkbox value={false}></Checkbox>
-      </DialogContent>
-      <DialogActions>
-        <Button color="success" variant="outlined" onClick={createPlaylist}>
-          Save
-        </Button>
-      </DialogActions>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={isPublic()}
+                onChange={() => {
+                  setIsPublic(!isPublic());
+                }}
+              />
+            }
+            label={`Playlist ist ${isPublic() ? "" : "nicht"} öffentlich`}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button type="submit" color="success" variant="outlined">
+            Save
+          </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   );
 };
