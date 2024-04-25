@@ -2,14 +2,14 @@ import { BsSave } from 'solid-icons/bs';
 import { createEffect, createSignal, onMount, Show } from 'solid-js';
 
 import {
-    Box, Button, Card, Container, Dialog, DialogActions, DialogContent, DialogContentText,
-    DialogTitle, List, ListItem, Paper, Stack, TextField, Typography
+    Box, Button, Card, Container, List, ListItem, Paper, Stack, Typography
 } from '@suid/material';
 import { DragDropProvider, DragDropSensors, DragEventHandler } from '@thisbeyond/solid-dnd';
 
 import Draggable from '../components/DragAndDrop/Draggable';
 import Droppable from '../components/DragAndDrop/Droppable';
 import { PlaylistItem } from '../components/Playlist/PlaylistItem';
+import SavePlaylistsDialog from '../components/SavePlaylistsDialog';
 import { usePlaylists } from '../context/PlaylistProvider';
 import { getMyPlaylists, getPlaylist, getPlaylistTracks } from '../utils/api';
 import { isTokenExpired } from '../utils/authorization';
@@ -22,7 +22,7 @@ function Dashboard() {
 
   const [
     { fromPlaylists, toPlaylists, fromTracklist, toTracklist },
-    { setFromPlaylists, setToPlaylists, setFromTracklist, setToTracklist }
+    { setFromPlaylists, setToPlaylists, setFromTracklist, setToTracklist },
   ] = usePlaylists();
 
   const [errorMessage, setErrorMessage] = createSignal("");
@@ -179,38 +179,9 @@ function Dashboard() {
         </DragDropProvider>
         {errorMessage() && <h3>{errorMessage()}</h3>}
       </Show>
-      <Dialog
-        open={openDialog()}
-        // TransitionComponent={Transition}
-        onClose={handleDialogClose}
-        aria-describedby="alert-dialog-slide-description"
-      >
-        <DialogTitle>Save Playlist</DialogTitle>
-        <DialogContent
-          sx={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
-        >
-          <DialogContentText id="alert-dialog-slide-description">
-            {`Möchtest du diese Playlist mit ihren ${
-              newPlaylistData()?.tracks.total
-            } Tracks so in deiner Spotify Bibliothek
-            erstellen?`}
-          </DialogContentText>
-          <TextField label="Name" value={newPlaylistData()?.name}></TextField>
-          <TextField
-            label="Beschreibung"
-            placeholder={
-              newPlaylistData()?.description
-                ? (newPlaylistData()?.description as string)
-                : "Das ist optional"
-            }
-          ></TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button color="success" variant="outlined" onClick={createPlaylist}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {newPlaylistData() && (
+        <SavePlaylistsDialog openDialog={openDialog} setOpenDialog={setOpenDialog} playlist={newPlaylistData()!} />
+      )}
     </Container>
   );
 }
