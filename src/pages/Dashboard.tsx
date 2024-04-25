@@ -16,13 +16,9 @@ import { isTokenExpired } from '../utils/authorization';
 import Login from './Login';
 
 function Dashboard() {
-  const [accessToken, setAccessToken] = createSignal<
-    string | undefined | null
-  >();
-
   const [
-    { fromPlaylists, toPlaylists, fromTracklist, toTracklist },
-    { setFromPlaylists, setToPlaylists, setFromTracklist, setToTracklist },
+    { accessToken,fromPlaylists, toPlaylists, fromTracklist, toTracklist },
+    { setAccessToken, setFromPlaylists, setToPlaylists, setFromTracklist, setToTracklist },
   ] = usePlaylists();
 
   const [errorMessage, setErrorMessage] = createSignal("");
@@ -180,7 +176,11 @@ function Dashboard() {
         {errorMessage() && <h3>{errorMessage()}</h3>}
       </Show>
       {newPlaylistData() && (
-        <SavePlaylistsDialog openDialog={openDialog} setOpenDialog={setOpenDialog} playlist={newPlaylistData()!} />
+        <SavePlaylistsDialog
+          openDialog={openDialog}
+          setOpenDialog={setOpenDialog}
+          playlist={newPlaylistData()!}
+        />
       )}
     </Container>
   );

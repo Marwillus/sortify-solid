@@ -2,14 +2,15 @@ import { createContext, createSignal, ParentComponent, useContext } from 'solid-
 
 // factory
 export const makePlaylistsContext = () => {
+  const [accessToken, setAccessToken] = createSignal<string | undefined | null>();
   const [fromPlaylists, setFromPlaylists] = createSignal<SpotifyApi.PlaylistObjectFull[]>();
   const [toPlaylists, setToPlaylists] = createSignal<SpotifyApi.PlaylistObjectFull[]>();
   const [fromTracklist, setFromTracklist] = createSignal<SpotifyApi.PagingObject<SpotifyApi.TrackObjectFull>>();
   const [toTracklist, setToTracklist] = createSignal<SpotifyApi.PagingObject<SpotifyApi.TrackObjectFull>>();
 
   return [
-    { fromPlaylists, toPlaylists, fromTracklist, toTracklist },
-    { setFromPlaylists, setToPlaylists, setFromTracklist, setToTracklist }
+    { accessToken, fromPlaylists, toPlaylists, fromTracklist, toTracklist },
+    { setAccessToken, setFromPlaylists, setToPlaylists, setFromTracklist, setToTracklist }
   ] as const;
 };
 
